@@ -1,0 +1,102 @@
+
+class HillStations {
+
+    String stationName;
+
+    public HillStations(String stationName) {
+        this.stationName = stationName;
+    }
+
+    
+    public void famousfood() {
+        System.out.println(stationName + ": No specific food info available.");
+    }
+
+    public void famousfor() {
+        System.out.println(stationName + ": No specific attraction info available.");
+    }
+}
+
+
+class Manali extends HillStations {
+
+    public Manali() {
+        super("Manali");
+    }
+
+    @Override
+    public void famousfood() {
+        System.out.println("Manali Famous Food   : Siddu (steamed bread), Trout Fish, Chha Gosht");
+    }
+
+    @Override
+    public void famousfor() {
+        System.out.println("Manali Famous For    : Rohtang Pass, Solang Valley, River Rafting, Snow Activities");
+    }
+}
+
+class Ooty extends HillStations {
+
+    public Ooty() {
+        super("Ooty");
+    }
+
+    @Override
+    public void famousfood() {
+        System.out.println("Ooty Famous Food     : Varkey, Homemade Chocolate, Nilgiri Tea, Ooty Halwa");
+    }
+
+    @Override
+    public void famousfor() {
+        System.out.println("Ooty Famous For      : Nilgiri Mountain Railway, Ooty Lake, Rose Garden, Tea Gardens");
+    }
+}
+
+
+class Darjeeling extends HillStations {
+
+    public Darjeeling() {
+        super("Darjeeling");
+    }
+
+    @Override
+    public void famousfood() {
+        System.out.println("Darjeeling Food      : Momos, Thukpa, Sel Roti, Darjeeling Tea");
+    }
+
+    @Override
+    public void famousfor() {
+        System.out.println("Darjeeling Famous For: Tiger Hill Sunrise, Batasia Loop, Tea Estates, Toy Train");
+    }
+}
+
+
+public class HillStationMain {
+
+    public static void main(String[] args) {
+
+        
+        HillStations spot;
+
+     
+        System.out.println("       Hill Stations of India Info       ");
+      
+
+        spot = new Manali();          
+        System.out.println("\n--- " + spot.stationName + " ---");
+        spot.famousfood();             
+        spot.famousfor();
+
+        spot = new Ooty();             
+        System.out.println("\n--- " + spot.stationName + " ---");
+        spot.famousfood();            
+        spot.famousfor();
+
+        spot = new Darjeeling();       
+        System.out.println("\n--- " + spot.stationName + " ---");
+        spot.famousfood();             
+        spot.famousfor();
+
+       
+    }
+}
