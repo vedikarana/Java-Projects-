@@ -1,0 +1,117 @@
+import java.io.FileWriter;
+import java.util.Scanner;
+
+// ── Banking Class ──
+class Banking {
+
+    int id;
+    String name;
+    double amount;
+
+    // Constructor with validation
+    Banking(int id, String name, double amount) throws Exception {
+
+        if (id < 1 || id > 20)
+            throw new Exception("CID must be between 1 and 20");
+
+        if (amount < 1000)
+            throw new Exception("Minimum balance should be 1000");
+
+        if (amount <= 0)
+            throw new Exception("Amount must be positive");
+
+        this.id = id;
+        this.name = name;
+        this.amount = amount;
+    }
+
+    void deposit(double amt) throws Exception {
+        if (amt <= 0)
+            throw new Exception("Deposit must be positive");
+
+        amount += amt;
+    }
+
+    void withdraw(double amt) throws Exception {
+        if (amt <= 0)
+            throw new Exception("Amount must be positive");
+
+        if (amt > amount)
+            throw new Exception("Insufficient balance");
+
+        amount -= amt;
+    }
+
+    void display() {
+        System.out.println("ID: " + id);
+        System.out.println("Name: " + name);
+        System.out.println("Balance: " + amount);
+    }
+}
+
+// ── Main Class ──
+public class BankingMain {
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        try {
+            System.out.print("Enter CID: ");
+            int id = sc.nextInt();
+
+            System.out.print("Enter Name: ");
+            String name = sc.next();
+
+            System.out.print("Enter Amount: ");
+            double amount = sc.nextDouble();
+
+            Banking b = new Banking(id, name, amount);
+
+            int choice;
+
+            do {
+                System.out.println("\n1. Deposit\n2. Withdraw\n3. Display\n4. Save to File\n5. Exit");
+                System.out.print("Enter choice: ");
+                choice = sc.nextInt();
+
+                switch (choice) {
+
+                    case 1:
+                        System.out.print("Enter deposit amount: ");
+                        double d = sc.nextDouble();
+                        b.deposit(d);
+                        break;
+
+                    case 2:
+                        System.out.print("Enter withdraw amount: ");
+                        double w = sc.nextDouble();
+                        b.withdraw(w);
+                        break;
+
+                    case 3:
+                        b.display();
+                        break;
+
+                    case 4:
+                        FileWriter fw = new FileWriter("customer.txt", true);
+                        fw.write(b.id + " " + b.name + " " + b.amount + "\n");
+                        fw.close();
+                        System.out.println("Saved to file!");
+                        break;
+
+                    case 5:
+                        System.out.println("Exiting...");
+                        break;
+
+                    default:
+                        System.out.println("Invalid choice!");
+                }
+
+            } while (choice != 5);
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}
