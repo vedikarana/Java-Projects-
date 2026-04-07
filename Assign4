@@ -1,111 +1,188 @@
 import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.Scanner;
 
-// ── Banking Class ──
-class Banking {
+enum AccountType {
+    SAVINGS, CURRENT, FIXED_DEPOSIT
+}
 
-    int id;
-    String name;
-    double amount;
+class Account {
 
-    // Constructor with validation
-    Banking(int id, String name, double amount) throws Exception {
+    int custId;
+    String holderName;
+    String pin;
+    double balance;
+    AccountType accType;
 
-        if (id < 1 || id > 20)
-            throw new Exception("CID must be between 1 and 20");
+    Account(int custId, String holderName, String pin,
+            double balance, AccountType accType) throws Exception {
 
-        if (amount < 1000)
-            throw new Exception("Minimum balance should be 1000");
+        if (custId < 1 || custId > 999)
+            throw new Exception("Customer ID must be between 1 and 999");
 
-        if (amount <= 0)
-            throw new Exception("Amount must be positive");
+        if (!pin.matches("\\d{4}"))
+            throw new Exception("PIN must be exactly 4 digits");
 
-        this.id = id;
-        this.name = name;
-        this.amount = amount;
+        double minBalance = getMinBalance(accType);
+        if (balance < minBalance)
+            throw new Exception("Minimum balance for " + accType + " is Rs." + minBalance);
+
+        this.custId = custId;
+        this.holderName = holderName;
+        this.pin = pin;
+        this.balance = balance;
+        this.accType = accType;
+    }
+
+    double getMinBalance(AccountType type) {
+        switch (type) {
+            case SAVINGS: return 500;
+            case CURRENT: return 5000;
+            case FIXED_DEPOSIT: return 10000;
+            default: return 1000;
+        }
+    }
+
+    boolean verifyPin(String inputPin) {
+        return pin.equals(inputPin);
     }
 
     void deposit(double amt) throws Exception {
         if (amt <= 0)
             throw new Exception("Deposit must be positive");
 
-        amount += amt;
+        balance += amt;
+        System.out.println(" Deposit successful! Balance: Rs." + balance);
     }
 
     void withdraw(double amt) throws Exception {
         if (amt <= 0)
             throw new Exception("Amount must be positive");
 
-        if (amt > amount)
+        if (accType == AccountType.FIXED_DEPOSIT)
+            throw new Exception("Withdraw not allowed for FD");
+
+        if (amt > balance)
             throw new Exception("Insufficient balance");
 
-        amount -= amt;
+        balance -= amt;
+        System.out.println("Withdraw successful! Balance: Rs." + balance);
     }
 
     void display() {
-        System.out.println("ID: " + id);
-        System.out.println("Name: " + name);
-        System.out.println("Balance: " + amount);
+        System.out.println("\n----- ACCOUNT DETAILS -----");
+        System.out.println("ID      : " + custId);
+        System.out.println("Name    : " + holderName);
+        System.out.println("Type    : " + accType);
+        System.out.println("Balance : Rs." + balance);
+    }
+
+    // Save to file
+    void saveToFile() {
+        try (FileWriter fw = new FileWriter("accounts.txt", true)) {
+            fw.write(custId + " | " + holderName + " | " + accType + " | Rs." + balance + "\n");
+            System.out.println("💾 Saved to file!");
+        } catch (Exception e) {
+            System.out.println("File error: " + e.getMessage());
+        }
     }
 }
 
-// ── Main Class ──
-public class BankingMain {
+public class BankSystem {
 
-    public static void main(String[] args) {
+    static ArrayList<Account> accountList = new ArrayList<>();
 
-        Scanner sc = new Scanner(System.in);
-
+    static void loadDummyData() {
         try {
-            System.out.print("Enter CID: ");
+            accountList.add(new Account(1, "Rahul", "1234", 5000, AccountType.SAVINGS));
+            accountList.add(new Account(2, "Priya", "1111", 12000, AccountType.CURRENT));
+            accountList.add(new Account(3, "Amit", "2222", 20000, AccountType.FIXED_DEPOSIT));
+        } catch (Exception e) {
+            System.out.println("Error loading dummy data");
+        }
+    }
+
+    static Account findAccount(int id) {
+        for (Account a : accountList) {
+            if (a.custId == id)
+                return a;
+        }
+        return null;
+    }
+
+    static void createAccount(Scanner sc) {
+        try {
+            System.out.print("Enter ID: ");
             int id = sc.nextInt();
 
+            if (findAccount(id) != null)
+                throw new Exception("ID already exists!");
+
             System.out.print("Enter Name: ");
-            String name = sc.next();
+            sc.nextLine();
+            String name = sc.nextLine();
 
-            System.out.print("Enter Amount: ");
-            double amount = sc.nextDouble();
+            System.out.print("Enter PIN: ");
+            String pin = sc.next();
 
-            Banking b = new Banking(id, name, amount);
+            System.out.println("1.SAVINGS 2.CURRENT 3.FD");
+            int ch = sc.nextInt();
+
+            AccountType type = (ch == 1) ? AccountType.SAVINGS :
+                               (ch == 2) ? AccountType.CURRENT :
+                                           AccountType.FIXED_DEPOSIT;
+
+            System.out.print("Enter amount: ");
+            double amt = sc.nextDouble();
+
+            Account a = new Account(id, name, pin, amt, type);
+            accountList.add(a);
+
+            System.out.println(" Account Created!");
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    static void login(Scanner sc) {
+        try {
+            System.out.print("Enter ID: ");
+            int id = sc.nextInt();
+
+            Account acc = findAccount(id);
+            if (acc == null)
+                throw new Exception("Account not found");
+
+            System.out.print("Enter PIN: ");
+            String pin = sc.next();
+
+            if (!acc.verifyPin(pin))
+                throw new Exception("Wrong PIN");
 
             int choice;
-
             do {
-                System.out.println("\n1. Deposit\n2. Withdraw\n3. Display\n4. Save to File\n5. Exit");
-                System.out.print("Enter choice: ");
+                System.out.println("\n1.Deposit 2.Withdraw 3.Display 4.Save 5.Logout");
                 choice = sc.nextInt();
 
                 switch (choice) {
-
                     case 1:
-                        System.out.print("Enter deposit amount: ");
-                        double d = sc.nextDouble();
-                        b.deposit(d);
+                        System.out.print("Amount: ");
+                        acc.deposit(sc.nextDouble());
                         break;
 
                     case 2:
-                        System.out.print("Enter withdraw amount: ");
-                        double w = sc.nextDouble();
-                        b.withdraw(w);
+                        System.out.print("Amount: ");
+                        acc.withdraw(sc.nextDouble());
                         break;
 
                     case 3:
-                        b.display();
+                        acc.display();
                         break;
 
                     case 4:
-                        FileWriter fw = new FileWriter("customer.txt", true);
-                        fw.write(b.id + " " + b.name + " " + b.amount + "\n");
-                        fw.close();
-                        System.out.println("Saved to file!");
+                        acc.saveToFile();
                         break;
-
-                    case 5:
-                        System.out.println("Exiting...");
-                        break;
-
-                    default:
-                        System.out.println("Invalid choice!");
                 }
 
             } while (choice != 5);
@@ -113,5 +190,28 @@ public class BankingMain {
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
+    }
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        loadDummyData();
+
+        int ch;
+        do {
+            System.out.println("\n1.Create 2.Login 3.View All 4.Exit");
+            ch = sc.nextInt();
+
+            switch (ch) {
+                case 1: createAccount(sc); break;
+                case 2: login(sc); break;
+                case 3:
+                    for (Account a : accountList)
+                        a.display();
+                    break;
+            }
+
+        } while (ch != 4);
     }
 }
